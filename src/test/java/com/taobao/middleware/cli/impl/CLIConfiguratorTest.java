@@ -19,6 +19,7 @@ package com.taobao.middleware.cli.impl;
 import com.taobao.middleware.cli.CLI;
 import com.taobao.middleware.cli.CLIException;
 import com.taobao.middleware.cli.CommandLine;
+import com.taobao.middleware.cli.Option;
 import com.taobao.middleware.cli.TypedOption;
 import com.taobao.middleware.cli.annotations.Argument;
 import com.taobao.middleware.cli.annotations.CLIConfigurator;
@@ -47,12 +48,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
 
+/**
+ * 自定义对象，用Cli的注解api，然后把命令行的参数值转化到这个对象中，方便应用方get
+ * @author zhaojindong
+ *
+ */
 public class CLIConfiguratorTest {
 
     @Test
     public void testHelloCLIFromClass() {
-        CLI command = CLIConfigurator.define(HelloClI.class);
+    	//HelloClI.java中使用了Cli的注解，定义option，相当于addOption(new Option().setShortName("f").setFlag(true))
+        CLI command = CLIConfigurator.define(HelloClI.class);	
 
+        //通过Cli.getOptions()获取命令行定义中的option
         assertThat(command.getOptions()).hasSize(1);
         TypedOption option = (TypedOption) find(command.getOptions(), "name");
         assertThat(option.getLongName()).isEqualToIgnoringCase("name");
@@ -68,6 +76,7 @@ public class CLIConfiguratorTest {
 
     @Test
     public void testUsage() {
+    	//把定义的Cli转化成使用说明字符串
         CLI command = CLIConfigurator.define(HelloClI.class);
         StringBuilder builder = new StringBuilder();
         command.usage(builder);
@@ -81,7 +90,7 @@ public class CLIConfiguratorTest {
     @Name("test")
     public static class CommandForDefaultValueTest {
         @com.taobao.middleware.cli.annotations.Option(longName = "option", shortName = "o")
-        @DefaultValue("bar")
+        @DefaultValue("bar")	//设置option的默认值
         public void setFoo(String foo) {
         }
     }
@@ -164,6 +173,10 @@ public class CLIConfiguratorTest {
         CLI command = CLIConfigurator.define(CommandForTypeExtractTest.class);
 
         assertThat(command.getOptions()).hasSize(6);
+        
+        /*
+         * 获取Cli定义中option的值被转化后的数据类型
+         */
         TypedOption model = (TypedOption) find(command.getOptions(), "list");
         assertThat(model.getType()).isEqualTo(String.class);
         assertThat(model.isMultiValued()).isTrue();
@@ -191,9 +204,16 @@ public class CLIConfiguratorTest {
 
     @Test
     public void testInjectionOfString() throws CLIException {
+    	//创建对象，用于接收命令行中option的值
         HelloClI command = new HelloClI();
+        
+        //通过HelloClI.class上的Cli注解，创建一个Cli 配置对象
         CLI cli = CLIConfigurator.define(HelloClI.class);
+        
+        //把命令行字符串转换成CommandLine
         CommandLine evaluatedCLI = cli.parse(Arrays.asList("--name", "vert.x"));
+        
+        //把CommandLine中的命令行option的值set到自定义的一个对象中，后面就可以从这个对象中get命令行参数
         CLIConfigurator.inject(evaluatedCLI, command);
 
         assertThat(command.run()).isEqualToIgnoringCase("Hello vert.x");

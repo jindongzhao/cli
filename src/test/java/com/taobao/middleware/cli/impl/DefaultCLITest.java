@@ -22,6 +22,8 @@ import com.taobao.middleware.cli.CLIs;
 import com.taobao.middleware.cli.CommandLine;
 import com.taobao.middleware.cli.MissingValueException;
 import com.taobao.middleware.cli.Option;
+import com.taobao.middleware.cli.annotations.CLIConfigurator;
+
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -30,6 +32,11 @@ import java.util.Collections;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
+ * 基本用法test case
+ * 
+ * 1，把命令行的字符串list，转换成CommandLine对象；
+ * 2，输出命令行的使用说明
+ * 
  * Tests the {@link DefaultCLI}.
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -40,10 +47,13 @@ public class DefaultCLITest {
     @Test
     public void testFlag() {
         final CLI cli = CLIs.create("test")
-                .addOption(new Option().setShortName("f").setFlag(true))
+                .addOption(new Option().setShortName("f").setFlag(true))	//只是个flag，不需要设置value
                 .addOption(new Option().setShortName("x"));
+        
+        //把字符串数组转换成CommandLine对象，然后通过getOptionValue()获取到option的值。
+        //相当于把json字符串转换成JSON对象，然后通过getJsonNode()获取值
         final CommandLine evaluated = cli.parse(Arrays.asList("-f", "-x", "foo"));
-        assertThat(evaluated.isFlagEnabled("f")).isTrue();
+        assertThat(evaluated.isFlagEnabled("f")).isTrue();	//判断flag是否传入
         assertThat((String) evaluated.getOptionValue("x")).isEqualToIgnoringCase("foo");
     }
 
@@ -52,7 +62,7 @@ public class DefaultCLITest {
         final CLI cli = CLIs.create("test")
                 .addOption(new Option().setShortName("f").setFlag(true))
                 .addOption(new Option().setShortName("x"));
-        final CommandLine evaluated = cli.parse(Arrays.asList("-x", "foo"));
+        final CommandLine evaluated = cli.parse(Arrays.asList("-x", "foo"));	//没有-f 的option
         assertThat(evaluated.isFlagEnabled("f")).isFalse();
         assertThat((String) evaluated.getOptionValue("x")).isEqualToIgnoringCase("foo");
     }
@@ -61,9 +71,19 @@ public class DefaultCLITest {
     public void testUsageComputationWhenUsingOnlyFlagShortOption() {
         final CLI cli = CLIs.create("test")
                 .addOption(new Option().setShortName("f").setDescription("turn on/off").setFlag(true));
+        
+        /*
+         * 获取命令行的使用说明。
+         * 例如：
+         * Usage: test [-f]
 
+			Options and Arguments:
+			 -f   turn on/off
+
+         */
         StringBuilder builder = new StringBuilder();
         cli.usage(builder);
+        
         assertThat(builder)
                 .contains("test [-f]")
                 .contains("Options and Arguments")
@@ -72,8 +92,15 @@ public class DefaultCLITest {
 
     @Test
     public void testUsageWhenNoArgsAndOptions() {
-        final CLI cli = CLIs.create("test").setDescription("A simple test command.");
+        final CLI cli = CLIs.create("test").setDescription("A simple test command.");	//不含option和argument的命令行
+        
+        /*
+         * 输出：
+         * Usage: test
 
+				A simple test command.
+
+         */
         StringBuilder builder = new StringBuilder();
         cli.usage(builder);
         assertThat(builder)
@@ -84,8 +111,17 @@ public class DefaultCLITest {
     @Test
     public void testUsageComputationWhenUsingOnlyFlagLongOption() {
         final CLI cli = CLIs.create("test")
-                .addOption(new Option().setLongName("flag").setDescription("turn on/off").setFlag(true));
+                .addOption(new Option().setLongName("flag").setDescription("turn on/off").setFlag(true))
+        		.addOption(new Option().setLongName("isDebug").setDescription("is or not debuge mode").setFlag(true));
+        
+        /*
+         * Usage: test [--flag] [--isDebug]
 
+			Options and Arguments:
+			    --flag      turn on/off
+			    --isDebug   is or not debuge mode
+
+         */
         StringBuilder builder = new StringBuilder();
         cli.usage(builder);
 
@@ -234,6 +270,8 @@ public class DefaultCLITest {
                 .addArgument(new Argument().setArgName("foo").setRequired(true));
 
         CommandLine commandLine = cli.parse(Collections.<String>emptyList(), false);
+        
+        //判断接收到的命令行 是否有效
         assertThat(commandLine.isValid()).isEqualTo(false);
     }
 

@@ -17,10 +17,13 @@
 package com.taobao.middleware.cli.impl;
 
 import com.taobao.middleware.cli.CLIException;
+import com.taobao.middleware.cli.CLIs;
+import com.taobao.middleware.cli.Option;
 import com.taobao.middleware.cli.annotations.Description;
 import com.taobao.middleware.cli.annotations.Name;
 import com.taobao.middleware.cli.annotations.Summary;
 
+//描述，相当于CLIs.create("test").setSummary(summary) 
 @Summary("A command saying hello.")
 @Description("A simple cli to wish you a good day. Pass your name with `--name`")
 @Name("hello")
@@ -28,7 +31,8 @@ public class HelloClI {
 
     public static boolean called = false;
     public String name;
-
+    
+    //相当于CLIs.create("test").addOption(new Option().setShortName("f").setFlag(true))
     @com.taobao.middleware.cli.annotations.Option(longName = "name", shortName = "n", required = true, argName = "name")
     @Description("your name")
     public void setTheName(String name) {

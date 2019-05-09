@@ -42,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 /**
+ * Cli.parse()的各种用法
  * Test the default parser.
  */
 public class DefaultParserTest {
@@ -60,7 +61,8 @@ public class DefaultParserTest {
         };
 
         cli.addOptions(Arrays.asList(options));
-        CommandLine evaluated = cli.parse(Collections.singletonList("--file=hello.txt"));
+        CommandLine evaluated = cli.parse(Collections.singletonList("--file=hello.txt"));	//可以使用等号
+        
         assertThat(evaluated.cli().getOptions()).hasSize(1);
         assertThat((String) evaluated.getOptionValue("file")).isEqualTo("hello.txt");
         assertThat(evaluated.getOptionValues("f")).containsExactly("hello.txt");
@@ -81,6 +83,7 @@ public class DefaultParserTest {
 
         cli.addOptions(Arrays.asList(options));
         CommandLine evaluated = cli.parse(Arrays.asList("--file", "hello.txt"));
+        
         assertThat(evaluated.cli().getOptions()).hasSize(1);
         assertThat((String) evaluated.getOptionValue("file")).isEqualTo("hello.txt");
         assertThat(evaluated.getOptionValues("f")).containsExactly("hello.txt");
@@ -126,13 +129,16 @@ public class DefaultParserTest {
 
         CommandLine evaluated = cli.parse(Arrays.asList("--file", "hello.txt"));
         assertThat((String) evaluated.getOptionValue("file")).isEqualTo("hello.txt");
-
+        
+        //可以使用=号
         evaluated = cli.parse(Collections.singletonList("--file=hello.txt"));
         assertThat((String) evaluated.getOptionValue("file")).isEqualTo("hello.txt");
-
+        
+        //可以在option后面直接写optin的值
         evaluated = cli.parse(Collections.singletonList("-filehello.txt"));
         assertThat((String) evaluated.getOptionValue("file")).isEqualTo("hello.txt");
 
+        //不区分大小写
         evaluated = cli.parse(Arrays.asList("--FILE", "hello.txt"));
         assertThat((String) evaluated.getOptionValue("file")).isEqualTo("hello.txt");
     }
@@ -163,12 +169,12 @@ public class DefaultParserTest {
                         .setMultiValued(true)
         };
         cli.addOptions(Arrays.asList(options));
-
+        
         CommandLine evaluated = cli.parse(Arrays.asList("-f=hello.txt", "--file=hello2.txt"));
         assertThat(evaluated.cli().getOptions()).hasSize(1);
-        assertThat((String) evaluated.getOptionValue("file")).isEqualTo("hello.txt");
-        assertThat(evaluated.getOptionValues("f"))
-                .containsExactly("hello.txt", "hello2.txt");
+        assertThat((String) evaluated.getOptionValue("file")).isEqualTo("hello.txt");	//全名字，精确匹配
+        assertThat(evaluated.getOptionValues("f"))	
+                .containsExactly("hello.txt", "hello2.txt");	//缩写名，匹配缩写option和全写option
     }
 
     @Test
